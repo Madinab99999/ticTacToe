@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"errors"
@@ -8,6 +8,8 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	"github.com/talgat-ruby/exercises-go/exercise4/bot/handler"
 )
 
 type readyListener struct {
@@ -21,7 +23,8 @@ func (l *readyListener) Accept() (net.Conn, error) {
 	return l.Listener.Accept()
 }
 
-func startServer() <-chan struct{} {
+// Start the server and handle requests using http.NewServeMux()
+func StartServer() (<-chan struct{}, *http.Server) {
 	ready := make(chan struct{})
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", os.Getenv("PORT")))
@@ -34,6 +37,11 @@ func startServer() <-chan struct{} {
 		IdleTimeout: 2 * time.Minute,
 	}
 
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /ping", handler.Ping)
+	mux.HandleFunc("POST /move", handler.Move)
+	srv.Handler = mux
+
 	go func() {
 		err := srv.Serve(list)
 		if !errors.Is(err, http.ErrServerClosed) {
@@ -41,5 +49,5 @@ func startServer() <-chan struct{} {
 		}
 	}()
 
-	return ready
+	return ready, srv
 }
