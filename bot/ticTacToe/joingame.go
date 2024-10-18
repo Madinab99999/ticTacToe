@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 )
 
 type RequestJoin struct {
@@ -25,10 +26,15 @@ func (p *Player) JoinGame(ctx context.Context) error {
 
 	client := &http.Client{}
 
+	judgePort := os.Getenv("JUDGE")
+	if judgePort == "" {
+		return fmt.Errorf("JUDGE environment variable is not set")
+	}
+
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		"http://localhost:4444/join",
+		fmt.Sprintf("http://localhost:%s/join", judgePort),
 		bytes.NewBuffer(reqBodyBytes))
 
 	if err != nil {

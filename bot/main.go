@@ -23,6 +23,7 @@ func main() {
 	if name == "" {
 		name = "Player"
 	}
+
 	port := os.Getenv("PORT")
 	url := fmt.Sprintf("http://localhost:%s", port)
 	player := ticTacToe.New(name, url)
