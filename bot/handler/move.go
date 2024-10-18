@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/talgat-ruby/exercises-go/exercise4/bot/pkg/httputils/request"
@@ -30,6 +31,7 @@ func (h *Handler) Move(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		http.Error(w, "failed to respond to move", http.StatusInternalServerError)
+		log.Printf("Failed to encode response: %v", err)
 	}
 }
 
