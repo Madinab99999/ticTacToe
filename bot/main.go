@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/talgat-ruby/exercises-go/exercise4/bot/joinGame"
 	"github.com/talgat-ruby/exercises-go/exercise4/bot/server"
+	"github.com/talgat-ruby/exercises-go/exercise4/bot/ticTacToe"
 )
 
 func main() {
@@ -18,7 +19,16 @@ func main() {
 	ready, srv := server.StartServer()
 	<-ready
 
-	if err := joinGame.JoinGame(ctx); err != nil {
+	name := os.Getenv("NAME")
+	if name == "" {
+		name = "Player"
+	}
+
+	port := os.Getenv("PORT")
+	url := fmt.Sprintf("http://localhost:%s", port)
+	player := ticTacToe.New(name, url)
+
+	if err := player.JoinGame(ctx); err != nil {
 		log.Fatalf("Failed to join the game: %v", err)
 	}
 
