@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func Ping(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Ping(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	_, err := w.Write([]byte("pong"))

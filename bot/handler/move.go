@@ -2,9 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"math/rand"
 	"net/http"
-	"time"
 
 	"github.com/talgat-ruby/exercises-go/exercise4/bot/pkg/httputils/request"
 	"github.com/talgat-ruby/exercises-go/exercise4/bot/ticTacToe"
@@ -19,7 +17,7 @@ type ResponseMove struct {
 	Index int `json:"index"`
 }
 
-func Move(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Move(w http.ResponseWriter, r *http.Request) {
 	var req RequestMove
 	if err := request.JSON(w, r, &req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -36,14 +34,6 @@ func Move(w http.ResponseWriter, r *http.Request) {
 }
 
 func calculateMove(board *ticTacToe.Board, token ticTacToe.Token) int {
-	// Если на доске только одна свободная ячейка
-	if countEmptyCells(board) == 1 {
-		return getAnyOccupiedCell(board)
-	}
-
-	if isBoardEmpty(board) {
-		return getRandomEmptyCell(board)
-	}
 
 	for i, cell := range board {
 		if cell == ticTacToe.TokenEmpty {
@@ -68,6 +58,16 @@ func calculateMove(board *ticTacToe.Board, token ticTacToe.Token) int {
 		}
 	}
 
+	if board[4] == ticTacToe.TokenEmpty {
+		return 4
+	}
+
+	for _, i := range []int{0, 2, 6, 8} {
+		if board[i] == ticTacToe.TokenEmpty {
+			return i
+		}
+	}
+
 	for i, cell := range board {
 		if cell == ticTacToe.TokenEmpty {
 			return i
@@ -75,50 +75,6 @@ func calculateMove(board *ticTacToe.Board, token ticTacToe.Token) int {
 	}
 
 	return -1
-}
-
-func countEmptyCells(board *ticTacToe.Board) int {
-	count := 0
-	for _, cell := range board {
-		if cell == ticTacToe.TokenEmpty {
-			count++
-		}
-	}
-	return count
-}
-
-func getAnyOccupiedCell(board *ticTacToe.Board) int {
-	for i, cell := range board {
-		if cell != ticTacToe.TokenEmpty {
-			return i
-		}
-	}
-	return -1
-}
-
-func isBoardEmpty(board *ticTacToe.Board) bool {
-	for _, cell := range board {
-		if cell != ticTacToe.TokenEmpty {
-			return false
-		}
-	}
-	return true
-}
-
-func getRandomEmptyCell(board *ticTacToe.Board) int {
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-	emptyCells := []int{}
-
-	for i, cell := range board {
-		if cell == ticTacToe.TokenEmpty {
-			emptyCells = append(emptyCells, i)
-		}
-	}
-
-	if len(emptyCells) == 0 {
-		return -1
-	}
-	return emptyCells[rng.Intn(len(emptyCells))]
 }
 
 func checkWinner(board *ticTacToe.Board, token ticTacToe.Token) bool {

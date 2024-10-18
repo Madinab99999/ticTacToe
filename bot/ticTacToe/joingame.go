@@ -1,4 +1,4 @@
-package joinGame
+package ticTacToe
 
 import (
 	"bytes"
@@ -7,9 +7,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-
-	"github.com/talgat-ruby/exercises-go/exercise4/bot/ticTacToe"
 )
 
 type RequestJoin struct {
@@ -17,22 +14,9 @@ type RequestJoin struct {
 	URL  string `json:"url"`
 }
 
-func NewPlayer() *ticTacToe.Player {
-	name := os.Getenv("NAME")
-	if name == "" {
-		name = "Player"
-	}
-	port := os.Getenv("PORT")
-	url := fmt.Sprintf("http://localhost:%s", port)
+func (p *Player) JoinGame(ctx context.Context) error {
 
-	return ticTacToe.New(name, url)
-}
-
-func JoinGame(ctx context.Context) error {
-	port := os.Getenv("PORT")
-	botURL := fmt.Sprintf("http://localhost:%s", port)
-	player := NewPlayer()
-	reqBody := RequestJoin{Name: player.Name, URL: botURL}
+	reqBody := RequestJoin{Name: p.Name, URL: p.URL}
 
 	reqBodyBytes, err := json.Marshal(reqBody)
 	if err != nil {

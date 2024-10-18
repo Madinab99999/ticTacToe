@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -27,6 +28,15 @@ func (l *readyListener) Accept() (net.Conn, error) {
 func StartServer() (<-chan struct{}, *http.Server) {
 	ready := make(chan struct{})
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("PORT environment variable is not set")
+	}
+
+	if port == "4444" {
+		log.Fatalf("Fatal error: Port %s is reserved for the game.", port)
+	}
+
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", os.Getenv("PORT")))
 	if err != nil {
 		panic(err)
@@ -35,12 +45,8 @@ func StartServer() (<-chan struct{}, *http.Server) {
 	list := &readyListener{Listener: listener, ready: ready}
 	srv := &http.Server{
 		IdleTimeout: 2 * time.Minute,
+		Handler:     New(),
 	}
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /ping", handler.Ping)
-	mux.HandleFunc("POST /move", handler.Move)
-	srv.Handler = mux
 
 	go func() {
 		err := srv.Serve(list)
@@ -50,4 +56,17 @@ func StartServer() (<-chan struct{}, *http.Server) {
 	}()
 
 	return ready, srv
+}
+
+func New() *http.ServeMux {
+	name := os.Getenv("NAME")
+	url := fmt.Sprintf("http://localhost:%s", os.Getenv("PORT"))
+
+	han := handler.New(name, url)
+	mux := http.NewServeMux()
+
+	mux.Handle("GET /ping", http.HandlerFunc(han.Ping))
+	mux.Handle("POST /move", http.HandlerFunc(han.Move))
+
+	return mux
 }
